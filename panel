@@ -1,0 +1,23 @@
+#!/bin/sh
+
+PANEL_FONT_FAMILY="-*-terminus-medium-r-normal-*-14-*-*-*-c-*-*-1"
+
+pgrep -u $USER -x panel_ > /dev/null
+if [ $? -eq 0 ] ; then
+    printf "%s\n" "The panel is already running." >&2
+    exit 1
+elif [ $? -gt 1 ]; then
+    printf "%s\n" "pgrep error." >&2
+    exit 1
+fi
+
+trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
+
+bspc config top_padding $PANEL_HEIGHT
+bspc control --subscribe > "$PANEL_FIFO" &
+xtitle -sf 'T%s' > "$PANEL_FIFO" &
+/usr/bin/clock -sf 'S%a %b %-d %H:%M' > "$PANEL_FIFO" &
+
+cat "$PANEL_FIFO" | panel_bar | bar -f "$PANEL_FONT_FAMILY" -B "#ff232c31" -F "#ffc5c8c6" -g "x18+0+0" -p &
+
+wait

@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# Example panel for LemonBoy's bar
+
+BACKGROUND="#ff232c31"
+COLOR0="#ff2d3c46"
+COLOR1="#ffac4142"
+COLOR2="#ff90a959"
+COLOR3="#ffde935f"
+COLOR4="#ff6a9fb5"
+COLOR5="#ffaa759f"
+COLOR6="#ff75b5aa"
+COLOR7="#ff6c7a80"
+COLOR8="#ff425059"
+COLOR9="#ffcc6666"
+FOREGROUND="#ffc5c8c6"
+
+while read -r line ; do
+    case $line in
+        S*)
+            # clock output
+            sys_infos="%{B-}%{F$COLOR7}${line#?}"
+            ;;
+        T*)
+            # xtitle output
+            title="%{B-}%{F$COLOR4}${line#?}"
+            ;;
+        W*)
+            # bspwm internal state
+            wm_infos=""
+            IFS=':'
+            set -- ${line#?}
+            while [ $# -gt 0 ] ; do
+                item=$1
+                name=${item#?}
+                case $item in
+                     M*)
+                        # monitor
+                        active=${name}
+                        wm_infos="$wm_infos %{S${name}}%{U-}"
+                        ;;
+                     m*)
+                        # monitor
+                        wm_infos="$wm_infos %{S${name}}%{U-}"
+                        ;;
+                    O*)
+                        # focused occupied desktop
+                        wm_infos="$wm_infos %{U$COLOR3}%{B-}%{F-}${name}%{U-}"
+                        ;;
+                    F*)
+                        # focused free desktop
+                        wm_infos="$wm_infos %{U$COLOR4}%{B-}%{F$COLOR7}${name}%{U-}"
+                        ;;
+                    U*)
+                        # focused urgent desktop
+                        wm_infos="$wm_infos %{U$COLOR9}%{B-}%{F-}${name}%{U-}"
+                        ;;
+                    o*)
+                        # occupied desktop
+                        wm_infos="$wm_infos %{B-}%{F-}${name}"
+                        ;;
+                    f*)
+                        # free desktop
+                        wm_infos="$wm_infos %{B-}%{F$COLOR7}${name}"
+                        ;;
+                    u*)
+                        # urgent desktop
+                        wm_infos="$wm_infos %{B$COLOR1%{F-}${name}"
+                        ;;
+                    L*)
+                        # layout
+                        layout=$(printf "%s" "${name}" | sed 's/\(.\).*/\U\1/')
+                        layout="%{B-}%{F$COLOR2}$layout"
+                        wm_infos="$wm_infos"
+                        ;;
+                esac
+                shift
+            done
+            ;;
+    esac
+    printf '%s\n' "%{l} %{+u}$wm_infos%{-u} %{S$active}%{c}$title %{S0}%{r}$sys_infos %{S1}}%{r}$layout "
+done
